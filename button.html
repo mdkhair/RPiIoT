@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IoT Dashboard</title>
+
+  <!-- Load the Socket.IO JavaScript client from CDN -->
+  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+
+  <!-- Simple styling for layout -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: #f0f8ff;
+      min-height: 100vh;
+    }
+
+    .card {
+      background-color: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      padding: 20px;
+      display: inline-block;
+      margin: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+    }
+
+    .on-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .off-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    h1 {
+      color: #2E86C1;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌡️ Real-Time IoT Dashboard</h1>
+
+  <!-- Temperature display -->
+  <div class="card">
+    <h2>Temperature</h2>
+    <p id="temp">-- °C</p>
+  </div>
+
+  <!-- Humidity display -->
+  <div class="card">
+    <h2>Humidity</h2>
+    <p id="humidity">-- %</p>
+  </div>
+
+  <!-- LED Control -->
+  <div class="card">
+    <h2>LED Control</h2>
+    <button class="on-btn" onclick="turnOn()">Turn ON</button>
+    <button class="off-btn" onclick="turnOff()">Turn OFF</button>
+  </div>
+
+  <!-- WebSocket and JavaScript Logic -->
+  <script>
+    // Connect to Flask-SocketIO WebSocket server
+    const socket = io();
+
+    // Receive real-time sensor data
+    socket.on('sensor_data', function(data) {
+      document.getElementById('temp').innerText = data.temp + ' °C';
+      document.getElementById('humidity').innerText = data.humidity + ' %';
+    });
+
+    // Send control commands to Raspberry Pi
+    function turnOn() {
+      socket.emit('led_control', 'on');
+    }
+
+    function turnOff() {
+      socket.emit('led_control', 'off');
+    }
+  </script>
+
+</body>
+</html>
