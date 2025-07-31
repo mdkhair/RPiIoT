@@ -13,7 +13,7 @@ GPIO.output(LED_PIN, GPIO.LOW)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('button.html')
 
 # Handle message from client (e.g., button press)
 @socketio.on('led_control')
