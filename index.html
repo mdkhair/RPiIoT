@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IoT Dashboard</title>
+
+  <!-- Load the Socket.IO JavaScript client from CDN -->
+  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+
+  <!-- Simple styling for layout -->
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 50px;
+    }
+    .card {
+      border: 1px solid #ccc;
+      padding: 20px;
+      display: inline-block;
+      margin: 10px;
+      border-radius: 8px;
+    }
+    h1 {
+      color: #2E86C1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Dashboard title -->
+  <h1>🌡️ Real-Time IoT Dashboard</h1>
+
+  <!-- Temperature display -->
+  <div class="card">
+    <h2>Temperature</h2>
+    <p id="temp">-- °C</p>
+  </div>
+
+  <!-- Humidity display -->
+  <div class="card">
+    <h2>Humidity</h2>
+    <p id="humidity">-- %</p>
+  </div>
+
+  <!-- JavaScript to receive real-time data -->
+  <script>
+    // Create WebSocket connection to the Flask-SocketIO server
+    const socket = io();
+
+    // When server sends 'sensor_data', update the display
+    socket.on('sensor_data', function(data) {
+      document.getElementById('temp').innerText = data.temp + ' °C';
+      document.getElementById('humidity').innerText = data.humidity + ' %';
+    });
+  </script>
+
+</body>
+</html>
