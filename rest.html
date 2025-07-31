@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DHT11 + LED REST Dashboard</title>
+  <style>
+    body { font-family: Arial; text-align: center; background: #e9f5ff; margin-top: 40px; }
+    .card { padding: 20px; background: #fff; border-radius: 10px; margin: 20px; display: inline-block; box-shadow: 0 0 10px #ccc; }
+    button { padding: 10px 20px; font-size: 16px; margin: 5px; }
+    .on { background: green; color: white; }
+    .off { background: red; color: white; }
+  </style>
+</head>
+<body>
+
+  <h1>🌡️ DHT11 + LED Control Dashboard</h1>
+
+  <div class="card">
+    <h2>Sensor Readings</h2>
+    <p>🌡️ Temperature: <span id="temp">--</span> °C</p>
+    <p>💧 Humidity: <span id="humidity">--</span> %</p>
+    <p>🔌 LED Status: <span id="led">--</span></p>
+    <button onclick="refresh()">🔄 Refresh</button>
+  </div>
+
+  <div class="card">
+    <h2>Manual LED Control</h2>
+    <button class="on" onclick="ledOn()">Turn ON</button>
+    <button class="off" onclick="ledOff()">Turn OFF</button>
+  </div>
+
+  <script>
+    function refresh() {
+      fetch('/sensor')
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('temp').innerText = data.temp;
+          document.getElementById('humidity').innerText = data.humidity;
+          document.getElementById('led').innerText = data.led;
+        });
+    }
+
+    function ledOn() {
+      fetch('/led/on')
+        .then(res => res.text())
+        .then(msg => alert(msg));
+    }
+
+    function ledOff() {
+      fetch('/led/off')
+        .then(res => res.text())
+        .then(msg => alert(msg));
+    }
+
+    // Auto load data on page load
+    window.onload = refresh;
+  </script>
+
+</body>
+</html>
