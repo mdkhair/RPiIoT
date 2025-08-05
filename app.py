@@ -1,33 +1,36 @@
 from flask import Flask, render_template
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 import board
 import adafruit_dht
-import eventlet
+from threading import Thread
 import time
 
-# Enable cooperative threading
-eventlet.monkey_patch()
-
-# Flask app and SocketIO setup
+# Flask app setup
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# DHT11 sensor setup with new library
+# DHT11 sensor setup
 dhtDevice = adafruit_dht.DHT11(board.D4)  # GPIO4
+
+# Global variable to control the background thread
+sensor_thread = None
+thread_running = False
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Background task to read from DHT11 and emit data
-def read_dht_sensor():
-    while True:
+def read_sensor_data():
+    """Background thread function to read sensor data"""
+    global thread_running
+    while thread_running:
         try:
             # Read temperature and humidity
             temperature = dhtDevice.temperature
             humidity = dhtDevice.humidity
             
             if temperature is not None and humidity is not None:
+                # Emit data to all connected clients
                 socketio.emit('sensor_data', {
                     'temp': round(temperature, 1),
                     'humidity': round(humidity, 1)
@@ -37,27 +40,33 @@ def read_dht_sensor():
                 print("Sensor reading was None")
                 
         except RuntimeError as error:
-            # DHT sensors can be finicky, continue on errors
             print("Reading error: {}".format(error.args[0]))
         except Exception as error:
             print("Unexpected error: {}".format(error))
-            dhtDevice.exit()
-            raise error
             
-        socketio.sleep(2)  # Use socketio.sleep for better async handling
+        time.sleep(2)
 
-# Start background thread when client connects
 @socketio.on('connect')
-def on_connect():
-    print("Client connected.")
-    # Only start one background task
-    if not hasattr(app, 'dht_task_started'):
-        app.dht_task_started = True
-        socketio.start_background_task(read_dht_sensor)
+def handle_connect():
+    global sensor_thread, thread_running
+    print("Client connected")
+    
+    # Start the background thread if it's not running
+    if sensor_thread is None or not sensor_thread.is_alive():
+        thread_running = True
+        sensor_thread = Thread(target=read_sensor_data)
+        sensor_thread.daemon = True
+        sensor_thread.start()
 
 @socketio.on('disconnect')
-def on_disconnect():
-    print("Client disconnected.")
+def handle_disconnect():
+    print("Client disconnected")
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    try:
+        socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+    except KeyboardInterrupt:
+        thread_running = False
+        if dhtDevice:
+            dhtDevice.exit()
+        print("\nProgram stopped")
