@@ -1,58 +1,96 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>IoT Dashboard</title>
-
-  <!-- Load the Socket.IO JavaScript client from CDN -->
-  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
-
-  <!-- Simple styling for layout -->
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      margin-top: 50px;
-    }
-    .card {
-      border: 1px solid #ccc;
-      padding: 20px;
-      display: inline-block;
-      margin: 10px;
-      border-radius: 8px;
-    }
-    h1 {
-      color: #2E86C1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHT11 Sensor Monitor</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .sensor-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .sensor-data {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .data-box {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            flex: 1;
+            margin: 0 10px;
+        }
+        .data-label {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .data-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+        .temperature { color: #ff6b6b; }
+        .humidity { color: #4ecdc4; }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+    </style>
 </head>
 <body>
+    <div class="sensor-container">
+        <h1>DHT11 Sensor Monitor</h1>
+        <div id="status" class="status disconnected">Connecting...</div>
+        <div class="sensor-data">
+            <div class="data-box">
+                <div class="data-label">Temperature</div>
+                <div class="data-value temperature" id="temperature">--C</div>
+            </div>
+            <div class="data-box">
+                <div class="data-label">Humidity</div>
+                <div class="data-value humidity" id="humidity">--%</div>
+            </div>
+        </div>
+    </div>
 
-  <!-- Dashboard title -->
-  <h1>🌡️ Real-Time IoT Dashboard</h1>
-
-  <!-- Temperature display -->
-  <div class="card">
-    <h2>Temperature</h2>
-    <p id="temp">-- °C</p>
-  </div>
-
-  <!-- Humidity display -->
-  <div class="card">
-    <h2>Humidity</h2>
-    <p id="humidity">-- %</p>
-  </div>
-
-  <!-- JavaScript to receive real-time data -->
-  <script>
-    // Create WebSocket connection to the Flask-SocketIO server
-    const socket = io();
-
-    // When server sends 'sensor_data', update the display
-    socket.on('sensor_data', function(data) {
-      document.getElementById('temp').innerText = data.temp + ' °C';
-      document.getElementById('humidity').innerText = data.humidity + ' %';
-    });
-  </script>
-
+    <script>
+        const socket = io();
+        
+        socket.on('connect', function() {
+            document.getElementById('status').textContent = 'Connected';
+            document.getElementById('status').className = 'status connected';
+        });
+        
+        socket.on('disconnect', function() {
+            document.getElementById('status').textContent = 'Disconnected';
+            document.getElementById('status').className = 'status disconnected';
+        });
+        
+        socket.on('sensor_data', function(data) {
+            document.getElementById('temperature').textContent = data.temp + 'C';
+            document.getElementById('humidity').textContent = data.humidity + '%';
+        });
+    </script>
 </body>
 </html>
