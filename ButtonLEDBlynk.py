@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+"""
+Raspberry Pi LED Control with Blynk IoT
+Control an LED connected to your Raspberry Pi using the Blynk app
+Using blynklib package
+"""
+
 import blynklib
 import RPi.GPIO as GPIO
 import time
@@ -20,34 +27,53 @@ GPIO.output(LED_PIN, GPIO.LOW)  # Start with LED off
 # Virtual Pin for LED control (V0 in Blynk app)
 LED_VPIN = 0
 
-# Register virtual pin handler
-@blynk.on("V{}".format(LED_VPIN))
-def v0_write_handler(value):
+# Register virtual pin handler for V0
+@blynk.handle_event('write V{}'.format(LED_VPIN))
+def write_virtual_pin_handler(pin, value):
     """
     Handler for virtual pin V0
     value[0] will be '1' for ON and '0' for OFF
     """
+    print(f"V{pin} value: {value}")
+    
     if int(value[0]) == 1:
         GPIO.output(LED_PIN, GPIO.HIGH)
         print("LED turned ON")
+        # Optional: Send confirmation back to app
+        blynk.virtual_write(LED_VPIN, 1)
     else:
         GPIO.output(LED_PIN, GPIO.LOW)
         print("LED turned OFF")
+        # Optional: Send confirmation back to app
+        blynk.virtual_write(LED_VPIN, 0)
 
-# Optional: Send LED status to Blynk app
-@blynk.on("connected")
-def blynk_connected():
+# Optional: Read handler if you want to sync state
+@blynk.handle_event('read V{}'.format(LED_VPIN))
+def read_virtual_pin_handler(pin):
     """
-    Sync virtual pins when connected
+    Handler for reading virtual pin V0
     """
-    print("Raspberry Pi connected to Blynk!")
-    # You can sync the current LED state if needed
-    # blynk.sync_virtual(LED_VPIN)
+    # Read current LED state
+    led_state = GPIO.input(LED_PIN)
+    blynk.virtual_write(pin, led_state)
+    print(f"Read V{pin}, LED state: {led_state}")
 
-@blynk.on("disconnected")
-def blynk_disconnected():
+# Connection handler
+@blynk.handle_event("connect")
+def connect_handler():
     """
-    Handle disconnection
+    Called when connected to Blynk
+    """
+    print("Connected to Blynk!")
+    # Sync current LED state with app
+    led_state = GPIO.input(LED_PIN)
+    blynk.virtual_write(LED_VPIN, led_state)
+
+# Disconnection handler
+@blynk.handle_event("disconnect")
+def disconnect_handler():
+    """
+    Called when disconnected from Blynk
     """
     print("Disconnected from Blynk")
 
