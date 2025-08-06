@@ -6,7 +6,7 @@ import adafruit_dht
 # Initialize DHT11 sensor
 dht = adafruit_dht.DHT11(board.D4)
 
-THINGSPEAK_API_KEY = 'YOUR_WRITE_API_KEY_HERE'
+THINGSPEAK_API_KEY = 'YOUR API KEY HERE'
 THINGSPEAK_URL = 'https://api.thingspeak.com/update'
 
 while True:
@@ -26,9 +26,9 @@ while True:
             except requests.exceptions.RequestException as e:
                 print(f"Error sending to ThingSpeak: {e}")
         else:
-            print("❗ Sensor read failed")
+            print("? Sensor read failed")
             
     except RuntimeError as e:
-        print(f"❗ Sensor read error: {e.args[0]}")
+        print(f"? Sensor read error: {e.args[0]}")
     
     time.sleep(15)  # Must wait at least 15s between uploads (ThingSpeak limit)
